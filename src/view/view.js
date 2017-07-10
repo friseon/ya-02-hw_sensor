@@ -3,7 +3,6 @@ ym.modules.define('shri2017.imageViewer.View', [
     'view.css'
 ], function (provide, imageLoader) {
     var View = function (params) {
-        this._image = null;
         this._resetData();
         this._setupDOM(params);
         this.setURL(params.url);
