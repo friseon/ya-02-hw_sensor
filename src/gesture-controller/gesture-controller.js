@@ -20,16 +20,17 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
             var state = this._view.getState();
 
             this._lastEventTypes += ' ' + event.type;
-            // dblclick // новый жест - сброс
+            // условия сброса // dblclick // новый жест - сброс
             if (!this._lastEventTypes && (this._lastEventTypes.indexOf('start move') === -1)) {
                 setTimeout(function () {
                     this._lastEventTypes = '';
                 }.bind(this), 700);
             }
 
+            //dblclick
             if (this._lastEventTypes.indexOf('start end start end') > -1) {
                 this._lastEventTypes = '';
-                // to do somethin awesome!
+                this._view._resetImageManipulation();
                 return;
             } else if (this._lastEventTypes.indexOf('move end') > -1) {
                 // когда заканчивает движение и отпускаем (например, однопальцевый зум)

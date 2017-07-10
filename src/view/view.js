@@ -3,10 +3,32 @@ ym.modules.define('shri2017.imageViewer.View', [
     'view.css'
 ], function (provide, imageLoader) {
     var View = function (params) {
+        this._image = null;
         this._resetData();
         this._setupDOM(params);
         this.setURL(params.url);
     };
+
+    // класс для значений изображения по умолчанию
+    function DefaultParams() {
+        this.scale = 0;
+        this.positionX = 0;
+        this.positionY = 0;
+        this.set = function(params) {
+            this.scale = params.scale;
+            this.positionX = params.positionX;
+            this.positionY = params.positionY;
+        };
+        this.get = function() {
+            return {
+                scale: this.scale,
+                positionX: this.positionX,
+                positionY: this.positionY
+            };
+        };
+    }
+    
+    var defaultParams = new DefaultParams();
 
     Object.assign(View.prototype, {
         setURL: function (url) {
@@ -26,7 +48,7 @@ ym.modules.define('shri2017.imageViewer.View', [
                 height: this._properties.image.height
             };
         },
-        // текущее положение
+        // текущее состояние
         getState: function () {
             // !
             return Object.assign({}, this._state);
@@ -53,12 +75,17 @@ ym.modules.define('shri2017.imageViewer.View', [
                 var zoom = (image.width > image.height) ?
                     containerSize.width / image.width :
                     containerSize.height / image.height;
-                this.setState({
+                defaultParams.set({
                     positionX: - (image.width * zoom - containerSize.width) / 2,
                     positionY: - (image.height * zoom - containerSize.height) / 2,
                     scale: zoom
                 });
+                this.setState(defaultParams.get());
             }
+        },
+        // сброс всех манипуляций с картинкой
+        _resetImageManipulation: function() {
+            this.setState(defaultParams.get());
         },
 
         _setTransform: function (state) {
