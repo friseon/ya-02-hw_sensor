@@ -83,17 +83,19 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
 
             var elemOffset = this._calculateElementPreset(this._elem);
 
+            
+            //
             var targetPoint = {
                 x: touches[0].pageX - elemOffset.x,
                 y: touches[0].pageY - elemOffset.y
             };
-
+            
             this._callback({
                 type: EVENTS[event.type],
                 targetPoint: targetPoint
             });
         },
-
+        // рассчитываем положение элемента
         _calculateElementPreset: function (elem) {
             // !
             var result = {

@@ -26,12 +26,12 @@ ym.modules.define('shri2017.imageViewer.View', [
                 height: this._properties.image.height
             };
         },
-
+        // текущее положение
         getState: function () {
             // !
             return Object.assign({}, this._state);
         },
-
+        // изменение состояния изображения
         setState: function (state) {
             // !
             this._state = Object.assign({}, this._state, state);

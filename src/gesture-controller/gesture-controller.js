@@ -19,29 +19,42 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
         _eventHandler: function (event) {
             var state = this._view.getState();
 
-            // dblclick
-            if (!this._lastEventTypes) {
+            this._lastEventTypes += ' ' + event.type;
+            // dblclick // новый жест - сброс
+            if (!this._lastEventTypes && (this._lastEventTypes.indexOf('start move') === -1)) {
                 setTimeout(function () {
                     this._lastEventTypes = '';
-                }.bind(this), 500);
+                }.bind(this), 700);
             }
-            this._lastEventTypes += ' ' + event.type;
 
-            if (this._lastEventTypes.indexOf('start stop start stop') > -1) {
+            if (this._lastEventTypes.indexOf('start end start end') > -1) {
                 this._lastEventTypes = '';
                 // to do somethin awesome!
                 return;
+            } else if (this._lastEventTypes.indexOf('move end') > -1) {
+                // когда заканчивает движение и отпускаем (например, однопальцевый зум)
+                this._lastEventTypes = '';
+                return;
             }
 
-            // drag
-            if (event.type === 'move') {
-                // 
+            if (this._lastEventTypes.indexOf('start end start move') > -1) {
+                // one finger zoom
+                this._progressZoom(event);
+            } else if (event.type === 'move') {
+                // drag
                 this._processDrag(event);
             } else {
+                // получаем текущее положение
                 this._initState = this._view.getState();
                 // откуда div рассчитывается
                 this._initEvent = event;
             }
+        },
+
+        _progressZoom: function(event) {
+            this._view.setState({
+                scale: this._initState.scale + (event.targetPoint.x - this._initEvent.targetPoint.x)/500
+            });
         },
 
         _processDrag: function(event) {
