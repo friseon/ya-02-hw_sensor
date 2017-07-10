@@ -8,6 +8,7 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
             this._view.getElement(),
             this._eventHandler.bind(this)
         );
+        this._lastEventTypes = '';
     };
 
     Object.assign(Controller.prototype, {
@@ -17,7 +18,37 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
 
         _eventHandler: function (event) {
             var state = this._view.getState();
-            // to do something awesome!
+
+            // dblclick
+            if (!this._lastEventTypes) {
+                setTimeout(function () {
+                    this._lastEventTypes = '';
+                }.bind(this), 500);
+            }
+            this._lastEventTypes += ' ' + event.type;
+
+            if (this._lastEventTypes.indexOf('start stop start stop') > -1) {
+                this._lastEventTypes = '';
+                // to do somethin awesome!
+                return;
+            }
+
+            // drag
+            if (event.type === 'move') {
+                // 
+                this._processDrag(event);
+            } else {
+                this._initState = this._view.getState();
+                // откуда div рассчитывается
+                this._initEvent = event;
+            }
+        },
+
+        _processDrag: function(event) {
+            this._view.setState({
+                positionX: this._initState.positionX + (event.targetPoint.x - this._initEvent.targetPoint.x),
+                positionY: this._initState.positionY + (event.targetPoint.y - this._initEvent.targetPoint.y)
+            });
         }
     });
 
