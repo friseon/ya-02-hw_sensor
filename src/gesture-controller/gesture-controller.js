@@ -50,11 +50,23 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
                 // откуда div рассчитывается
                 this._initEvent = event;
             }
-        },
 
+            if (event.type === "wheel") {
+                this._wheelZoom(event);
+            }
+        },
+        // зум колесиком мышки
+        _wheelZoom: function(event) {
+            if (event.wheelDelta) {
+                this._view.setState({
+                    scale: this._initState.scale + event.wheelDelta/500
+                });
+            }
+        },
+        // зум жестом
         _progressZoom: function(event) {
             this._view.setState({
-                scale: this._initState.scale + (event.targetPoint.x - this._initEvent.targetPoint.x)/500
+                scale: this._initState.scale + (event.targetPoint.y - this._initEvent.targetPoint.y)/500
             });
         },
 

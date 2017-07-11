@@ -6,6 +6,9 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
         mousemove: 'move',
         mouseup: 'end',
 
+        mousewheelforward: 'wheelforward',
+        mousewheel: 'wheel',
+
         touchstart: 'start',
         touchmove: 'move',
         touchend: 'end',
@@ -27,6 +30,10 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
             // mouse
             this._mouseListener = this._mouseEventHandler.bind(this);
             this._addEventListeners('mousedown', this._elem, this._mouseListener);
+
+            // mouse wheel
+            this._mouseWheelListener = this._mouseWheelEventHandler.bind(this);
+            this._addEventListeners('mousewheel', this._elem, this._mouseWheelListener);
 
             //touch
             this._touchListener = this._mouseEventHandler.bind(this);
@@ -51,12 +58,21 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
             }, this);
         },
 
+        _mouseWheelEventHandler: function() {
+            var delta = Math.max(-1, Math.min(1, (event.wheelDelta)));
+            
+            this._callback({
+                type: EVENTS[event.type],
+                wheelDelta: delta
+            });
+        },
+
         _mouseEventHandler: function(){
             event.preventDefault();
 
             if (event.type === 'mousedown') {
                 this._addEventListeners('mousemove mouseup', document.documentElement, this._mouseListener);
-            } else  if (event.type === 'mouseup') {
+            } else if (event.type === 'mouseup') {
                 this._removeEventListeners('mousemove mouseup', document.documentElement, this._mouseListener);
             }
 
@@ -82,14 +98,13 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
             }
 
             var elemOffset = this._calculateElementPreset(this._elem);
-
             
             //
             var targetPoint = {
                 x: touches[0].pageX - elemOffset.x,
                 y: touches[0].pageY - elemOffset.y
             };
-            
+
             this._callback({
                 type: EVENTS[event.type],
                 targetPoint: targetPoint
