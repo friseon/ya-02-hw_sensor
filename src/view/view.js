@@ -55,6 +55,28 @@ ym.modules.define('shri2017.imageViewer.View', [
         // изменение состояния изображения
         setState: function (state) {
             // !
+            // scope Window
+            var scale = state.scale ? (state.scale > defaultParams.get().scale ? state.scale : defaultParams.get().scale) : this._state.scale;
+            var x = (state.positionX || 0 - state.pivotPointX || 0);
+            var y = (state.positionY || 0 - state.pivotPointY || 0);
+            var diffWidth = this.getImageSize().width*scale - this._properties.size.width;
+            var diffHeight = this.getImageSize().height*scale - this._properties.size.height;
+            var positionX = x > 0 ? 
+                            0 :
+                            -x > diffWidth ?
+                                -diffWidth :
+                                x;
+            var positionY = y > 0 ?
+                            0 :
+                            -y > diffHeight ?
+                                -diffHeight :
+                                y;
+            
+            state.scale = scale;
+            state.positionX = positionX;
+            state.positionY = positionY;
+            // /!scope Window
+
             this._state = Object.assign({}, this._state, state);
             this._setTransform(this._state);
         },

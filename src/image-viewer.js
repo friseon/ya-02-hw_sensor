@@ -4,7 +4,7 @@ ym.modules.define('shri2017.ImageViewer', [
 ], function (provide, View, GestureController) {
 
     function ImageViewer(params) {
-        this._validateParams(params);
+        params = this._validateParams(params);
         this._view = new View(params);
         this._controller = new GestureController(this._view);
     }
@@ -25,7 +25,7 @@ ym.modules.define('shri2017.ImageViewer', [
                 throw new Error('Elem parameter is required');
             }
 
-            params = Object.assign({
+            return Object.assign({
                 size: {
                     width: 800,
                     height: 600

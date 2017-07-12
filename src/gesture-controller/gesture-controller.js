@@ -20,8 +20,10 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
             var state = this._view.getState();
 
             this._lastEventTypes += ' ' + event.type;
+
+            console.log(event.pointerType + " (" + event.type + "): " + this._lastEventTypes);
             // условия сброса // dblclick // новый жест - сброс
-            if (!this._lastEventTypes && (this._lastEventTypes.indexOf('start move') === -1)) {
+            if (!this._lastEventTypes ) {
                 setTimeout(function () {
                     this._lastEventTypes = '';
                 }.bind(this), 700);
@@ -38,9 +40,9 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
                 return;
             }
 
-            if (this._lastEventTypes.indexOf('start end start move') > -1) {
+            if (this._lastEventTypes.indexOf('start end start move') > -1 && event.pointerType !== 'mouse') {
                 // one finger zoom
-                this._progressZoom(event);
+                this._oneTouchZoom(event);
             } else if (event.type === 'move') {
                 // drag
                 this._processDrag(event);
@@ -48,25 +50,29 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
                 // получаем текущее положение
                 this._initState = this._view.getState();
                 // откуда div рассчитывается
+                // конечная точка
                 this._initEvent = event;
             }
 
-            if (event.type === "wheel") {
+            if (event.pointerType === 'mouse' && event.type === "wheel") {
                 this._wheelZoom(event);
             }
         },
         // зум колесиком мышки
         _wheelZoom: function(event) {
+            console.log(event.targetPoint.x)
             if (event.wheelDelta) {
                 this._view.setState({
-                    scale: this._initState.scale + event.wheelDelta/500
+                    scale: this._initState.scale + event.wheelDelta/500,
+                    positionX: this._initState.positionX - (event.targetPoint.x)*event.wheelDelta/50,
+                    positionY: this._initState.positionY - (event.targetPoint.y)*event.wheelDelta/50
                 });
             }
         },
         // зум жестом
-        _progressZoom: function(event) {
+        _oneTouchZoom: function(event) {
             this._view.setState({
-                scale: this._initState.scale + (event.targetPoint.y - this._initEvent.targetPoint.y)/500
+                scale: this._initState.scale + (event.targetPoint.y - this._initEvent.targetPoint.y)/500,
             });
         },
 

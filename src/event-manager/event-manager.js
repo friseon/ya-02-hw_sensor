@@ -6,13 +6,18 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
         mousemove: 'move',
         mouseup: 'end',
 
-        mousewheelforward: 'wheelforward',
         mousewheel: 'wheel',
+        DOMMouseScroll: 'wheel',
 
         touchstart: 'start',
         touchmove: 'move',
         touchend: 'end',
-        touchcancel: 'end'
+        touchcancel: 'end',
+
+        pointerdown: 'start',
+        pointermove: 'move',
+        pointerup: 'end',
+        pointercancel: 'end'
     };
 
     function EventManager(elem, callback) {
@@ -27,23 +32,36 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
         },
 
         _setupListeners: function () {
-            // mouse
-            this._mouseListener = this._mouseEventHandler.bind(this);
-            this._addEventListeners('mousedown', this._elem, this._mouseListener);
 
-            // mouse wheel
-            this._mouseWheelListener = this._mouseWheelEventHandler.bind(this);
-            this._addEventListeners('mousewheel', this._elem, this._mouseWheelListener);
+            if (window.PointerEvent) {
+                //pointer Events
+                console.log("Pointer events");
+                this._pointerListener = this._pointerEventHandler.bind(this);
+                this._addEventListeners('pointerdown', this._elem, this._pointerListener);
+            } else if (window.TouchEvent) {
+                // touch Events
+                console.log("Touch events");
+                this._touchListener = this._touchEventHandler.bind(this);
+                this._addEventListeners('touchstart touchmove touchend touchcancel', this._elem, this._touchListener);
+            } 
 
-            //touch
-            this._touchListener = this._mouseEventHandler.bind(this);
-            this._addEventListeners('touchstart touchmove touchend touchcancel', this._elem, this._touchHandler);
+            if (window.MouseEvent) {
+                // mouse
+                console.log("Mouse events");
+                this._mouseListener = this._mouseEventHandler.bind(this);
+                this._addEventListeners('mousedown', this._elem, this._mouseListener);
+
+                // mouse wheel
+                this._mouseWheelListener = this._mouseWheelEventHandler.bind(this);
+                this._addEventListeners('mousewheel DOMMouseScroll', this._elem, this._mouseWheelListener);
+            }
         },
 
         _teardownListeners: function () {
             this._removeEventListeners('mousedown', this._elem, this._mouseListener);
-            this._removeEventListeners('mouseve mouseup', this._elem, this._mouseListener);
+            this._removeEventListeners('mousemove mouseup', this._elem, this._mouseListener);
             this._removeEventListeners('touchstart touchmove touchend touchcancel', this._elem, this._touchListener);
+            this._removeEventListeners('pointerdown pointermove pointerup pointercancel', this._elem, this._pointerListener);
         },
 
         _addEventListeners: function (types, elem, callback) {
@@ -58,16 +76,27 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
             }, this);
         },
 
-        _mouseWheelEventHandler: function() {
-            var delta = Math.max(-1, Math.min(1, (event.wheelDelta)));
+        _mouseWheelEventHandler: function(event) {
+            // if firefox || ie
+            if (!!event == false) event = window.event;
+            event.preventDefault();
+            var delta = Math.max(-1, Math.min(1, (event.wheelDelta ? event.wheelDelta : event.detail)));
+            var elemOffset = this._calculateElementPreset(this._elem);
+
+            var targetPoint = {
+                x: event.pageX - elemOffset.x,
+                y: event.pageY - elemOffset.y
+            };
             
             this._callback({
                 type: EVENTS[event.type],
-                wheelDelta: delta
+                pointerType: "mouse",
+                wheelDelta: delta,
+                targetPoint: targetPoint
             });
         },
 
-        _mouseEventHandler: function(){
+        _mouseEventHandler: function(event){
             event.preventDefault();
 
             if (event.type === 'mousedown') {
@@ -80,6 +109,7 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
 
             this._callback({
                 type: EVENTS[event.type],
+                pointerType: "mouse",
                 targetPoint: {
                     x: event.pageX - elemOffset.x,
                     y: event.pageY - elemOffset.y
@@ -87,16 +117,16 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
             });
         },
 
-        _touchHandler: function(event) {
+        _touchEventHandler: function(event) {
             // Отменяем стандартное поведение (последующие события мышки)
             event.preventDefault();
-
+            
             var touches = event.touches;
             // touchend/touchcancel
             if (touches.length === 0) {
                 touches = event.changedTouches;
             }
-
+            
             var elemOffset = this._calculateElementPreset(this._elem);
             
             //
@@ -107,6 +137,33 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
 
             this._callback({
                 type: EVENTS[event.type],
+                pointerType: "touch",
+                targetPoint: targetPoint
+            });
+        },
+
+        _pointerEventHandler: function(event) {
+            // Отменяем стандартное поведение (последующие события мышки)
+            event.preventDefault();
+            if (event.type === 'pointerdown') {
+                document.body.style.touchAction = "none";
+                this._addEventListeners('pointermove pointerup', document.documentElement, this._pointerListener);
+            } else if (event.type === 'pointerup') {
+                document.body.style.touchAction = "auto";
+                this._removeEventListeners('pointermove pointerup', document.documentElement, this._pointerListener);
+            }
+
+            var elemOffset = this._calculateElementPreset(this._elem);
+            
+            //
+            var targetPoint = {
+                x: event.pageX - elemOffset.x,
+                y: event.pageY - elemOffset.y
+            };
+
+            this._callback({
+                type: EVENTS[event.type],
+                pointerType: "pointer",
                 targetPoint: targetPoint
             });
         },
