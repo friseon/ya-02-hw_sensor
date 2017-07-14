@@ -19,6 +19,8 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
         pointerup: 'end',
         pointercancel: 'end'
     };
+    /** Список Pointer Events */
+    var pointers = {};
 
     function EventManager(elem, callback) {
         this._elem = elem;
@@ -167,24 +169,45 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
 
             if (event.type === 'pointerdown') {
                 document.body.style.touchAction = "none";
+                pointers[event.pointerId] = event;
                 this._addEventListeners('pointermove pointerup', document.documentElement, this._pointerListener);
             } else if (event.type === 'pointerup') {
                 document.body.style.touchAction = "auto";
+                delete pointers[event.pointerId];
                 this._removeEventListeners('pointermove pointerup', document.documentElement, this._pointerListener);
+            } else if (event.type === 'pointermove') {
+                pointers[event.pointerId] = event;
             }
 
             var elemOffset = this._calculateElementPreset(this._elem);
             
-            //
-            var targetPoint = {
-                x: event.pageX - elemOffset.x,
-                y: event.pageY - elemOffset.y
-            };
+            var targetPoint;
+            var distance = 1;
+            if (Object.keys(pointers).length == 1) {
+                targetPoint = {
+                    x: pointers[Object.keys(pointers)[0]].clientX,
+                    y: pointers[Object.keys(pointers)[0]].clientY
+                };
+            } else if (pointers.length > 1) {
+                var firstPointer = pointers[Object.keys(pointers)[0]];
+                var secondPointer = pointers[Object.keys(pointers)[1]];
+                targetPoint = this._calculateTargetPoint(firstPointer, secondPointer);
+                distance = this._calculateDistance(firstPointer, secondPointer);
+            } else {
+                targetPoint = {
+                    x: event.clientX,
+                    y: event.clientY
+                };
+            }
 
+            targetPoint.x -= elemOffset.x;
+            targetPoint.y -= elemOffset.y;
+            
             this._callback({
                 type: EVENTS[event.type],
                 pointerType: "pointer",
-                targetPoint: targetPoint
+                targetPoint: targetPoint,
+                distance: distance
             });
         },
 
@@ -194,7 +217,12 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                 y: (secondTouch.clientY + firstTouch.clientY) / 2
             };
         },
-        // рассчитываем дистанцию
+        /**
+         * Рассчитываем дистанцию для мультитача
+         * @param {Object} firstTouch
+         * @param {Object} secondTouch
+         * @returns {number}
+         */
         _calculateDistance: function (firstTouch, secondTouch) {
             return Math.sqrt(
                 Math.pow(secondTouch.clientX - firstTouch.clientX, 2) +

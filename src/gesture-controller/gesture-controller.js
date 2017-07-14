@@ -31,7 +31,7 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
     /**
      * Минимальная дистанция, чтобы зафиксировать движение
      */
-    var MIN_DISTANCE_FOR_MOVE = 10;
+    var MIN_DISTANCE_FOR_MOVE = 30;
     /**
      * Вычисление расстояния между двумя точками
      * @param {x, y} A - координаты первой точки
@@ -59,20 +59,18 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
         _eventHandler: function (event) {
             var state = this._view.getState();
 
-            console.log(event.pointerType + " (" + event.type + "): " + this._lastEventTypes);
-
             if (!this._lastEventTypes ) {
                 setTimeout(function () {
                     this._lastEventTypes = '';
                 }.bind(this), 1500);
             }
-            if (event.type === "move" && 
-                    distanceTwoPoints(event.targetPoint, this._initEvent.targetPoint) > MIN_DISTANCE_FOR_MOVE) {
+            if (event.type === "move" && distanceTwoPoints(event.targetPoint, this._initEvent.targetPoint) > MIN_DISTANCE_FOR_MOVE) {
                 this._lastEventTypes += ' ' + event.type;
             } else if (event.type !== "move") {
                 this._lastEventTypes += ' ' + event.type;
             }
 
+            console.log(event.pointerType + " (" + event.type + "): " + this._lastEventTypes);
             /**
              * DblClick
              * -> Сделал по двойному клику возврат к изначальным настройкам
@@ -108,7 +106,7 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
                 this._processDrag(event);
                 return;
             } else {
-                // здесь происходит по событиям start || end
+                // по событиям start || end
                 // получаем текущее положение
                 this._initState = this._view.getState();
                 // откуда div рассчитывается
@@ -121,7 +119,7 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
                 return;
             }
             /** Сброс флагов жестов, если пришел тип end */
-            if (event.type === 'end') {
+            if (event.type === "end") {
                 this._resetGestures();
             }
         },
