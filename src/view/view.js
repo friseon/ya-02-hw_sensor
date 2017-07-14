@@ -8,7 +8,10 @@ ym.modules.define('shri2017.imageViewer.View', [
         this.setURL(params.url);
     };
 
-    // класс для значений изображения по умолчанию
+    /**
+     * Дефолтные значения
+     * @constructor
+     */
     function DefaultParams() {
         this.scale = 0;
         this.positionX = 0;
@@ -55,7 +58,8 @@ ym.modules.define('shri2017.imageViewer.View', [
         // изменение состояния изображения
         setState: function (state) {
             // !
-            // scope Window
+            // Запрет сдвига изображения за границы
+            // Zoom и Drag только в пределах самого изображения
             var scale = state.scale ? (state.scale > defaultParams.get().scale ? state.scale : defaultParams.get().scale) : this._state.scale;
             var x = (state.positionX || 0 - state.pivotPointX || 0);
             var y = (state.positionY || 0 - state.pivotPointY || 0);
@@ -75,7 +79,7 @@ ym.modules.define('shri2017.imageViewer.View', [
             state.scale = scale;
             state.positionX = positionX;
             state.positionY = positionY;
-            // /!scope Window
+            // !
 
             this._state = Object.assign({}, this._state, state);
             this._setTransform(this._state);

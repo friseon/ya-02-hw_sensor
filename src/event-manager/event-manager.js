@@ -35,19 +35,23 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
 
             if (window.PointerEvent) {
                 //pointer Events
-                console.log("Pointer events");
+                console.log("Pointer events active");
                 this._pointerListener = this._pointerEventHandler.bind(this);
                 this._addEventListeners('pointerdown', this._elem, this._pointerListener);
+                this._addEventListeners('touchstart touchmove touchend', this._elem, function(event) {
+                    // отключаем поведение для Touch Events
+                    event.preventDefault();
+                });
             } else if (window.TouchEvent) {
                 // touch Events
-                console.log("Touch events");
+                console.log("Touch events active");
                 this._touchListener = this._touchEventHandler.bind(this);
                 this._addEventListeners('touchstart touchmove touchend touchcancel', this._elem, this._touchListener);
             } 
 
             if (window.MouseEvent) {
                 // mouse
-                console.log("Mouse events");
+                console.log("Mouse events active");
                 this._mouseListener = this._mouseEventHandler.bind(this);
                 this._addEventListeners('mousedown', this._elem, this._mouseListener);
 
@@ -77,22 +81,26 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
         },
 
         _mouseWheelEventHandler: function(event) {
+            // 
             // if firefox || ie
-            if (!!event == false) event = window.event;
+            if (!!event === false) {
+                event = window.event;
+            }
             event.preventDefault();
-            var delta = Math.max(-1, Math.min(1, (event.wheelDelta ? event.wheelDelta : event.detail)));
-            var elemOffset = this._calculateElementPreset(this._elem);
 
-            var targetPoint = {
-                x: event.pageX - elemOffset.x,
-                y: event.pageY - elemOffset.y
-            };
+            var delta = Math.max(-1, Math.min(1, (event.wheelDelta ? event.wheelDelta : event.detail)));
+
+            var elemOffset = this._calculateElementPreset(this._elem);
             
             this._callback({
                 type: EVENTS[event.type],
                 pointerType: "mouse",
                 wheelDelta: delta,
-                targetPoint: targetPoint
+                targetPoint: {
+                    x: event.clientX - elemOffset.x,
+                    y: event.clientY - elemOffset.y
+                },
+                distance: 1
             });
         },
 
@@ -111,40 +119,52 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                 type: EVENTS[event.type],
                 pointerType: "mouse",
                 targetPoint: {
-                    x: event.pageX - elemOffset.x,
-                    y: event.pageY - elemOffset.y
-                }
+                    x: event.clientX - elemOffset.x,
+                    y: event.clientY - elemOffset.y
+                },
+                distance: 1
             });
         },
 
         _touchEventHandler: function(event) {
-            // Отменяем стандартное поведение (последующие события мышки)
             event.preventDefault();
-            
+
             var touches = event.touches;
             // touchend/touchcancel
             if (touches.length === 0) {
                 touches = event.changedTouches;
             }
-            
+
+            var targetPoint;
+            var distance = 1;
             var elemOffset = this._calculateElementPreset(this._elem);
-            
-            //
-            var targetPoint = {
-                x: touches[0].pageX - elemOffset.x,
-                y: touches[0].pageY - elemOffset.y
-            };
+
+            if (touches.length === 1) {
+                targetPoint = {
+                    x: touches[0].clientX,
+                    y: touches[0].clientY
+                };
+            } else {
+                var firstTouch = touches[0];
+                var secondTouch = touches[1];
+                targetPoint = this._calculateTargetPoint(firstTouch, secondTouch);
+                distance = this._calculateDistance(firstTouch, secondTouch);
+            }
+
+            targetPoint.x -= elemOffset.x;
+            targetPoint.y -= elemOffset.y;
 
             this._callback({
                 type: EVENTS[event.type],
                 pointerType: "touch",
-                targetPoint: targetPoint
+                targetPoint: targetPoint,
+                distance: distance
             });
         },
 
         _pointerEventHandler: function(event) {
-            // Отменяем стандартное поведение (последующие события мышки)
             event.preventDefault();
+
             if (event.type === 'pointerdown') {
                 document.body.style.touchAction = "none";
                 this._addEventListeners('pointermove pointerup', document.documentElement, this._pointerListener);
@@ -167,19 +187,28 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                 targetPoint: targetPoint
             });
         },
+
+        _calculateTargetPoint: function (firstTouch, secondTouch) {
+            return {
+                x: (secondTouch.clientX + firstTouch.clientX) / 2,
+                y: (secondTouch.clientY + firstTouch.clientY) / 2
+            };
+        },
+        // рассчитываем дистанцию
+        _calculateDistance: function (firstTouch, secondTouch) {
+            return Math.sqrt(
+                Math.pow(secondTouch.clientX - firstTouch.clientX, 2) +
+                Math.pow(secondTouch.clientY - firstTouch.clientY, 2)
+            );
+        },
         // рассчитываем положение элемента
         _calculateElementPreset: function (elem) {
             // !
-            var result = {
-                x: 0,
-                y: 0
+            var bounds = elem.getBoundingClientRect();
+            return {
+                x: bounds.left,
+                y: bounds.top
             };
-            while (elem) {
-                result.x += elem.offsetLeft;
-                result.y += elem.offsetTop;
-                elem = elem.offsetParent;
-            }
-            return result;
         }
     });
 
