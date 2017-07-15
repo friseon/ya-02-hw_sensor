@@ -171,7 +171,7 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                 document.body.style.touchAction = "none";
                 pointers[event.pointerId] = event;
                 this._addEventListeners('pointermove pointerup', document.documentElement, this._pointerListener);
-            } else if (event.type === 'pointerup') {
+            } else if (event.type === 'pointerup' || event.type === 'pointercancel') {
                 document.body.style.touchAction = "auto";
                 delete pointers[event.pointerId];
                 this._removeEventListeners('pointermove pointerup', document.documentElement, this._pointerListener);
@@ -180,15 +180,14 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
             }
 
             var elemOffset = this._calculateElementPreset(this._elem);
-            
             var targetPoint;
             var distance = 1;
-            if (Object.keys(pointers).length == 1) {
+            if (Object.keys(pointers).length === 1) {
                 targetPoint = {
                     x: pointers[Object.keys(pointers)[0]].clientX,
                     y: pointers[Object.keys(pointers)[0]].clientY
                 };
-            } else if (pointers.length > 1) {
+            } else if (Object.keys(pointers).length > 1) {
                 var firstPointer = pointers[Object.keys(pointers)[0]];
                 var secondPointer = pointers[Object.keys(pointers)[1]];
                 targetPoint = this._calculateTargetPoint(firstPointer, secondPointer);
@@ -205,7 +204,7 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
             
             this._callback({
                 type: EVENTS[event.type],
-                pointerType: "pointer",
+                pointerType: event.pointerType,
                 targetPoint: targetPoint,
                 distance: distance
             });

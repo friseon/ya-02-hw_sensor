@@ -11,7 +11,6 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
             this._eventHandler.bind(this)
         );
         this._lastEventTypes = '';
-
         this._gestures = {
             dblClick: false,
             drag: false,
@@ -49,7 +48,9 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
         destroy: function () {
             this._eventManager.destroy();
         },
-
+        /**
+         * Сброс всех флагов жестов
+         */
         _resetGestures: function() {
             for (var gesture in this._gestures) {
                 this._gestures[gesture] = false;
@@ -62,7 +63,7 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
             if (!this._lastEventTypes ) {
                 setTimeout(function () {
                     this._lastEventTypes = '';
-                }.bind(this), 1500);
+                }.bind(this), 700);
             }
             if (event.type === "move" && distanceTwoPoints(event.targetPoint, this._initEvent.targetPoint) > MIN_DISTANCE_FOR_MOVE) {
                 this._lastEventTypes += ' ' + event.type;
@@ -76,6 +77,7 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
              * -> Сделал по двойному клику возврат к изначальным настройкам
              */
             if (this._lastEventTypes.indexOf('start end start end') > -1) {
+                this._resetGestures();
                 this._gestures.dblClick = true;
                 this._lastEventTypes = '';
                 // this._processDbltab(event);
@@ -84,14 +86,14 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
                 return;
             }
             /** One finger zoom (not mouse!) */
-            if (this._lastEventTypes.indexOf('start end start move') > -1 && event.pointerType !== 'mouse') {
+            if (this._lastEventTypes.indexOf('start end start') > -1 && event.pointerType !== 'mouse') {
+                this._resetGestures();
                 this._gestures.oneTouchZoom = true;
-                this._lastEventTypes = '';
             }
             /** Multitouch zoom */
             if (event.distance > 1 && event.distance !== this._initEvent.distance) {
+                this._resetGestures();
                 this._gestures.multiTouchZoom = true;
-                this._lastEventTypes = '';
             }
             /** Move event */
             if (event.type === 'move') {
@@ -131,7 +133,7 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
                 var state = this._view.getState();
                 this._scale(
                     event.targetPoint,
-                    state.scale + event.wheelDelta/SCALE_WHEEL_COEF
+                    this._initState.scale + event.wheelDelta/SCALE_WHEEL_COEF
                 );
             }
         },
@@ -143,7 +145,7 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
             var state = this._view.getState();
             this._scale(
                 event.targetPoint,
-                state.scale + scaleDiff
+                this._initState.scale + scaleDiff
             );
         },
         /**
