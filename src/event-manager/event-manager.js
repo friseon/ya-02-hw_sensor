@@ -166,18 +166,25 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
 
         _pointerEventHandler: function(event) {
             event.preventDefault();
+            // pointer ID
+            var idEvent = event.pointerId;
 
             if (event.type === 'pointerdown') {
                 document.body.style.touchAction = "none";
-                pointers[event.pointerId] = event;
+                pointers[idEvent] = event;
                 this._addEventListeners('pointermove pointerup', document.documentElement, this._pointerListener);
             } else if (event.type === 'pointerup' || event.type === 'pointercancel') {
                 document.body.style.touchAction = "auto";
-                delete pointers[event.pointerId];
-                this._removeEventListeners('pointermove pointerup', document.documentElement, this._pointerListener);
+                delete pointers[idEvent];
+                // если больше не осталось активныйх касаний - снимаем все листенеры
+                if (Object.keys(pointers).length === 0) {
+                    this._removeEventListeners('pointermove pointerup', document.documentElement, this._pointerListener);
+                }
             } else if (event.type === 'pointermove') {
-                pointers[event.pointerId] = event;
+                pointers[idEvent] = event;
             }
+
+            // multitouch -> good -> up up -> one touch zoom on move???
 
             var elemOffset = this._calculateElementPreset(this._elem);
             var targetPoint;

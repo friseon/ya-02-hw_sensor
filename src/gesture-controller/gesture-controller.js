@@ -65,6 +65,7 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
                     this._lastEventTypes = '';
                 }.bind(this), 700);
             }
+            
             if (event.type === "move" && distanceTwoPoints(event.targetPoint, this._initEvent.targetPoint) > MIN_DISTANCE_FOR_MOVE) {
                 this._lastEventTypes += ' ' + event.type;
             } else if (event.type !== "move") {
@@ -74,15 +75,15 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
             console.log(event.pointerType + " (" + event.type + "): " + this._lastEventTypes);
             /**
              * DblClick
-             * -> Сделал по двойному клику возврат к изначальным настройкам
+             * -> по двойному клику возврат к изначальным настройкам
              */
             if (this._lastEventTypes.indexOf('start end start end') > -1) {
                 this._resetGestures();
                 this._gestures.dblClick = true;
                 this._lastEventTypes = '';
-                // this._processDbltab(event);
+                this._processDbltab(event);
                 // ->
-                this._view._resetImageManipulation();
+                // this._view._resetImageManipulation();
                 return;
             }
             /** One finger zoom (not mouse!) */
@@ -116,13 +117,14 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
                 this._initEvent = event;
             }
             /** Mouse wheel */
-            if (event.type === "wheel" && event.pointerType === 'mouse') {
+            if (event.type === 'wheel' && event.pointerType === 'mouse') {
                 this._wheelZoom(event);
                 return;
             }
             /** Сброс флагов жестов, если пришел тип end */
-            if (event.type === "end") {
+            if (event.type === 'end') {
                 this._resetGestures();
+                return;
             }
         },
         /**
