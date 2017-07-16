@@ -85,7 +85,7 @@ ym.modules.define('shri2017.imageViewer.View', [
             state.positionY = positionY;
             // !
 
-            this._state = Object.assign({}, this._state, state);
+            this._state = extend({}, this._state, state);
             this._setTransform(this._state);
         },
 
