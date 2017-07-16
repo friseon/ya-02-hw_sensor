@@ -139,6 +139,7 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
 
             var targetPoint;
             var distance = 1;
+            var angle = 0;
             var elemOffset = this._calculateElementPreset(this._elem);
 
             if (touches.length === 1) {
@@ -151,6 +152,7 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                 var secondTouch = touches[1];
                 targetPoint = this._calculateTargetPoint(firstTouch, secondTouch);
                 distance = this._calculateDistance(firstTouch, secondTouch);
+                angle = this._calculateRotation(firstTouch, secondTouch);
             }
 
             targetPoint.x -= elemOffset.x;
@@ -160,7 +162,8 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                 type: EVENTS[event.type],
                 pointerType: "touch",
                 targetPoint: targetPoint,
-                distance: distance
+                distance: distance,
+                angle: angle
             });
         },
 
@@ -187,6 +190,7 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
             var elemOffset = this._calculateElementPreset(this._elem);
             var targetPoint;
             var distance = 1;
+            var angle = 0;
             if (Object.keys(pointers).length === 1) {
                 targetPoint = {
                     x: pointers[Object.keys(pointers)[0]].clientX,
@@ -197,6 +201,7 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                 var secondPointer = pointers[Object.keys(pointers)[1]];
                 targetPoint = this._calculateTargetPoint(firstPointer, secondPointer);
                 distance = this._calculateDistance(firstPointer, secondPointer);
+                angle = this._calculateRotation(firstTouch, secondTouch);
             } else {
                 targetPoint = {
                     x: event.clientX,
@@ -218,7 +223,7 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
         _calculateTargetPoint: function (firstTouch, secondTouch) {
             return {
                 x: (secondTouch.clientX + firstTouch.clientX) / 2,
-                y: (secondTouch.clientY + firstTouch.clientY) / 2
+                y: (secondTouch.clientY + firstTouch.clientX) / 2
             };
         },
         /**
@@ -241,6 +246,17 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                 x: bounds.left,
                 y: bounds.top
             };
+        },
+        
+        /** Рассчет угла поворота 
+         * @param  {} firstTouch
+         * @param  {} secondTouch
+         * @return {number} angel
+         */
+        _calculateRotation: function(firstTouch, secondTouch) {
+            var angle = Math.atan2(firstTouch.clientY - secondTouch.clientY,
+               firstTouch.clientX - secondTouch.clientX);
+            return angle;
         }
     });
 

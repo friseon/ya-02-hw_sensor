@@ -17,7 +17,8 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
             drag: false,
             whellZoom: false,
             oneTouchZoom: false,
-            multiTouchZoom: false
+            multiTouchZoom: false,
+            multiTouchRotate: false
         };
     };
     /**
@@ -92,8 +93,13 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
                 this._resetGestures();
                 this._gestures.oneTouchZoom = true;
             }
+            /** Multitouch rotate */
+            if (!this._gestures.multiTouchZoom && Math.abs(event.angle) > 1.1 && event.angle !== this._initEvent.angle) {
+                this._resetGestures();
+                this._gestures.multiTouchRotate = true;
+            }
             /** Multitouch zoom */
-            if (event.distance > 1 && event.distance !== this._initEvent.distance) {
+            if (!this._gestures.multiTouchRotate && event.distance > 2 && Math.abs(event.angle) < 1.15 && event.distance !== this._initEvent.distance) {
                 this._resetGestures();
                 this._gestures.multiTouchZoom = true;
             }
@@ -105,6 +111,10 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
                 }
                 if (this._gestures.multiTouchZoom === true) {
                     this._processMultitouch(event);
+                    return;
+                }
+                if (this._gestures.multiTouchRotate === true) {
+                    this._processRotate(event);
                     return;
                 }
                 this._processDrag(event);
@@ -170,6 +180,15 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
             );
         },
         /**
+         * Multitouch rotate
+         */
+        _processRotate: function(event) {
+            this._rotate(
+                event.targetPoint,
+                this._initState.angle + (event.angle - this._initEvent.angle)
+            );
+        },
+        /**
          * Double tap
          */
         _processDbltab: function (event) {
@@ -206,6 +225,16 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
             state.pivotPointY = targetPoint.y;
             // Устанавливаем масштаб и угол наклона
             state.scale = newScale;
+            this._view.setState(state);
+        },
+
+        _rotate: function(targetPoint, newAngle) {
+            var state = this._view.getState();
+
+            state.pivotPointX = targetPoint.x;
+            state.pivotPointY = targetPoint.y;
+
+            state.angle = newAngle;
             this._view.setState(state);
         }
     });
