@@ -1,6 +1,7 @@
-# Мастер-класс "Сенсорные события". Мобилизация 2017
+# Домашнее задание по теме "Сенсорные события". Мобилизация 2017
 
-Для запуска мастер класс необходимо операционная система на базе unix или windows 10 с последним обновлением (Creators Update) с включенным "Bash Ubuntu for Windows" [Подробнее](https://www.windowscentral.com/how-install-bash-shell-command-line-windows-10)
+Для запуска необходимо:
+> операционная система на базе unix или windows 10 с последним обновлением (Creators Update) с включенным "Bash Ubuntu for Windows" [Подробнее](https://www.windowscentral.com/how-install-bash-shell-command-line-windows-10)
 
 ## Первый запуск
 ```bash
