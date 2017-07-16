@@ -103,7 +103,8 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                     x: event.clientX - elemOffset.x,
                     y: event.clientY - elemOffset.y
                 },
-                distance: 1
+                distance: 1,
+                angle: 0
             });
         },
 
@@ -125,7 +126,8 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                     x: event.clientX - elemOffset.x,
                     y: event.clientY - elemOffset.y
                 },
-                distance: 1
+                distance: 1,
+                angle: 0
             });
         },
 
@@ -217,7 +219,8 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                 type: EVENTS[event.type],
                 pointerType: event.pointerType,
                 targetPoint: targetPoint,
-                distance: distance
+                distance: distance,
+                angle: angle
             });
         },
 

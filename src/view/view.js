@@ -127,6 +127,9 @@ ym.modules.define('shri2017.imageViewer.View', [
             ctx.clearRect(0, 0, this._properties.size.width, this._properties.size.height);
             // Устаналиваем новую
             ctx.translate(state.pivotPointX, state.pivotPointY);
+            if (state.scale <= 0.08) {
+                state.scale = 0.08;
+            }
             ctx.scale(state.scale, state.scale);
             ctx.rotate(state.angle);
             // Отрисовываем изображение с учетом текущей "стержневой" точки
