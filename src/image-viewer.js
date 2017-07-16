@@ -10,7 +10,7 @@ ym.modules.define('shri2017.ImageViewer', [
         this._controller = new GestureController(this._view);
     }
 
-    Object.assign(ImageViewer.prototype, {
+    extend(ImageViewer.prototype, {
         destroy: function () {
             this._controller.destroy();
             this._view.destroy();
