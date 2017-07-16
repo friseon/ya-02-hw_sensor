@@ -40,7 +40,7 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                 //pointer Events
                 console.log("Pointer events active");
                 this._pointerListener = this._pointerEventHandler.bind(this);
-                this._addEventListeners('pointerdown', this._elem, this._pointerListener);
+                this._addEventListeners('pointerdown pointerup pointermove', this._elem, this._pointerListener);
                 this._addEventListeners('touchstart touchmove touchend', this._elem, function(event) {
                     // отключаем поведение для Touch Events
                     event.preventDefault();
@@ -138,6 +138,10 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
             // touchend/touchcancel
             if (touches.length === 0) {
                 touches = event.changedTouches;
+                // Если нет касаний - слушаем только на самом элементе
+                this._removeEventListeners('touchstart touchmove touchend', document.documentElement, this._touchListener);
+                this._addEventListeners('touchstart touchmove touchend', this._elem, this._touchListener);
+                
             }
 
             var targetPoint;
@@ -150,6 +154,10 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                     x: touches[0].clientX,
                     y: touches[0].clientY
                 };
+                // Появилось касание на элементе - слушаем по всему документу
+                this._addEventListeners('touchstart touchmove touchend', document.documentElement, this._touchListener);
+                this._removeEventListeners('touchstart touchmove touchend', this._elem, this._touchListener);
+                
             } else {
                 var firstTouch = touches[0];
                 var secondTouch = touches[1];
@@ -175,17 +183,18 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
             // pointer ID
             var idEvent = event.pointerId;
 
+            if (Object.keys(pointers).length === 0) {
+                // Если нет касаний - слушаем только на самом элементе
+                this._removeEventListeners('pointerdown pointerup pointermove', document.documentElement, this._pointerListener);
+                this._addEventListeners('pointerdown pointerup pointermove', this._elem, this._pointerListener);
+            }
+
             if (event.type === 'pointerdown') {
                 document.body.style.touchAction = "none";
                 pointers[idEvent] = event;
-                this._addEventListeners('pointermove pointerup', document.documentElement, this._pointerListener);
             } else if (event.type === 'pointerup' || event.type === 'pointercancel') {
                 document.body.style.touchAction = "auto";
                 delete pointers[idEvent];
-                // если больше не осталось активныйх касаний - снимаем все листенеры
-                if (Object.keys(pointers).length === 0) {
-                    this._removeEventListeners('pointermove pointerup', document.documentElement, this._pointerListener);
-                }
             } else if (event.type === 'pointermove') {
                 pointers[idEvent] = event;
             }
@@ -199,13 +208,17 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                     x: pointers[Object.keys(pointers)[0]].clientX,
                     y: pointers[Object.keys(pointers)[0]].clientY
                 };
+                // Появилось касание на элементе - слушаем по всему документу
+                this._addEventListeners('pointerdown pointerup pointermove', document.documentElement, this._pointerListener);
+                this._removeEventListeners('pointerdown pointerup pointermove', this._elem, this._pointerListener);
             } else if (Object.keys(pointers).length > 1) {
                 var firstPointer = pointers[Object.keys(pointers)[0]];
                 var secondPointer = pointers[Object.keys(pointers)[1]];
                 targetPoint = this._calculateTargetPoint(firstPointer, secondPointer);
                 distance = this._calculateDistance(firstPointer, secondPointer);
-                angle = this._calculateRotation(firstTouch, secondTouch);
+                angle = this._calculateRotation(firstPointer, secondPointer);
             } else {
+                // Нет касаний
                 targetPoint = {
                     x: event.clientX,
                     y: event.clientY

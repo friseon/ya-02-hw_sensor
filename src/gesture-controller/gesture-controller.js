@@ -209,7 +209,8 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
             state.pivotPointY = targetPoint.y;
             // Устанавливаем масштаб и угол наклона
             state.scale = newScale;
-            state.angle = newAngle;
+            // Если не приходит угол - берем у исходного стостояния
+            state.angle = newAngle || this._initState.angle;
             this._view.setState(state);
         },
 
