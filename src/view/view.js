@@ -1,7 +1,8 @@
 ym.modules.define('shri2017.imageViewer.View', [
     'shri2017.imageViewer.util.imageLoader',
-    'view.css'
-], function (provide, imageLoader) {
+    'util.extend',
+    'view.css',
+], function (provide, imageLoader, extend) {
     var View = function (params) {
         this._resetData();
         this._setupDOM(params);
@@ -32,7 +33,7 @@ ym.modules.define('shri2017.imageViewer.View', [
     
     var defaultParams = new DefaultParams();
 
-    Object.assign(View.prototype, {
+    extend(View.prototype, {
         setURL: function (url) {
             this._curURL = url;
             if (this._holderElem) {
@@ -50,10 +51,13 @@ ym.modules.define('shri2017.imageViewer.View', [
                 height: this._properties.image.height
             };
         },
-        // текущее состояние
+        /**
+         * Получить текущее состояние
+         * @return {Object} state
+         */
         getState: function () {
             // !
-            return Object.assign({}, this._state);
+            return extend({}, this._state);
         },
         // изменение состояния изображения
         setState: function (state) {

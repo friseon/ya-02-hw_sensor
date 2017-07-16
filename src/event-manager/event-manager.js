@@ -184,8 +184,6 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                 pointers[idEvent] = event;
             }
 
-            // multitouch -> good -> up up -> one touch zoom on move???
-
             var elemOffset = this._calculateElementPreset(this._elem);
             var targetPoint;
             var distance = 1;
