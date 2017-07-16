@@ -40,7 +40,7 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                 //pointer Events
                 console.log("Pointer events active");
                 this._pointerListener = this._pointerEventHandler.bind(this);
-                this._addEventListeners('pointerdown pointerup pointermove', this._elem, this._pointerListener);
+                this._addEventListeners('pointerdown', this._elem, this._pointerListener);
                 this._addEventListeners('touchstart touchmove touchend', this._elem, function(event) {
                     // отключаем поведение для Touch Events
                     event.preventDefault();
@@ -49,7 +49,7 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                 // touch Events
                 console.log("Touch events active");
                 this._touchListener = this._touchEventHandler.bind(this);
-                this._addEventListeners('touchstart touchmove touchend touchcancel', this._elem, this._touchListener);
+                this._addEventListeners('touchstart', this._elem, this._touchListener);
             } 
 
             if (window.MouseEvent) {
@@ -182,23 +182,34 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
             event.preventDefault();
             // pointer ID
             var idEvent = event.pointerId;
-
-            if (Object.keys(pointers).length === 0) {
-                // Если нет касаний - слушаем только на самом элементе
-                this._removeEventListeners('pointerdown pointerup pointermove', document.documentElement, this._pointerListener);
-                this._addEventListeners('pointerdown pointerup pointermove', this._elem, this._pointerListener);
-            }
-
+            /**
+             * Анализ касаний
+             */
             if (event.type === 'pointerdown') {
                 document.body.style.touchAction = "none";
                 pointers[idEvent] = event;
+                // Если только 1-ое касание на элементе - слушаем по всему документу move & up
+                // Если уже 2-ое касание - слушаем по всему документу всё
+                if (Object.keys(pointers).length === 1) {
+                    this._addEventListeners('pointerup pointermove', document.documentElement, this._pointerListener);
+                } else if (Object.keys(pointers).length > 1) {
+                    this._addEventListeners('pointerdown pointerup pointermove', document.documentElement, this._pointerListener);
+                }
             } else if (event.type === 'pointerup' || event.type === 'pointercancel') {
                 document.body.style.touchAction = "auto";
                 delete pointers[idEvent];
+                // Нет касаний - удаляем все листенеры с документа и move & up с элемента
+                if (Object.keys(pointers).length === 0) {
+                    this._removeEventListeners('pointerdown pointerup pointermove', document.documentElement, this._pointerListener);
+                    this._removeEventListeners('pointerup pointermove', this._elem, this._pointerListener);
+                }
             } else if (event.type === 'pointermove') {
+                // Обновляем касание
                 pointers[idEvent] = event;
             }
-
+            /**
+             * Расчет значений для жестов
+             */
             var elemOffset = this._calculateElementPreset(this._elem);
             var targetPoint;
             var distance = 1;
@@ -208,9 +219,6 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                     x: pointers[Object.keys(pointers)[0]].clientX,
                     y: pointers[Object.keys(pointers)[0]].clientY
                 };
-                // Появилось касание на элементе - слушаем по всему документу
-                this._addEventListeners('pointerdown pointerup pointermove', document.documentElement, this._pointerListener);
-                this._removeEventListeners('pointerdown pointerup pointermove', this._elem, this._pointerListener);
             } else if (Object.keys(pointers).length > 1) {
                 var firstPointer = pointers[Object.keys(pointers)[0]];
                 var secondPointer = pointers[Object.keys(pointers)[1]];
