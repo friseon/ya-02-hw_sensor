@@ -212,16 +212,6 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
             // Если не приходит угол - берем у исходного стостояния
             state.angle = newAngle || this._initState.angle;
             this._view.setState(state);
-        },
-
-        _rotate: function(targetPoint, newAngle) {
-            var state = this._view.getState();
-
-            state.pivotPointX = targetPoint.x;
-            state.pivotPointY = targetPoint.y;
-
-            state.angle = newAngle;
-            this._view.setState(state);
         }
     });
 
