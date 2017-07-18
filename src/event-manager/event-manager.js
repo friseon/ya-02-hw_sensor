@@ -188,19 +188,15 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
             if (event.type === 'pointerdown') {
                 document.body.style.touchAction = "none";
                 pointers[idEvent] = event;
-                // Если только 1-ое касание на элементе - слушаем по всему документу move & up
-                // Если уже 2-ое касание - слушаем по всему документу всё
-                if (Object.keys(pointers).length === 1) {
-                    this._addEventListeners('pointerup pointermove', document.documentElement, this._pointerListener);
-                } else if (Object.keys(pointers).length > 1) {
-                    this._addEventListeners('pointerdown pointerup pointermove', document.documentElement, this._pointerListener);
+                // Если появилось касание на элементе - слушаем move & up
+                if (Object.keys(pointers).length == 1) {
+                    this._addEventListeners('pointerup pointermove', this._elem, this._pointerListener);
                 }
-            } else if (event.type === 'pointerup' || event.type === 'pointercancel') {
+            } else if (event.type === 'pointerup') {
                 document.body.style.touchAction = "auto";
                 delete pointers[idEvent];
-                // Нет касаний - удаляем все листенеры с документа и move & up с элемента
-                if (Object.keys(pointers).length === 0) {
-                    this._removeEventListeners('pointerdown pointerup pointermove', document.documentElement, this._pointerListener);
+                // Нет касаний - удаляем листенеры move & up с элемента
+                if (Object.keys(pointers).length === 0) {// this._removeEventListeners('pointerdown pointerup pointermove', document.documentElement, this._pointerListener);
                     this._removeEventListeners('pointerup pointermove', this._elem, this._pointerListener);
                 }
             } else if (event.type === 'pointermove') {

@@ -131,6 +131,7 @@ ym.modules.define('shri2017.imageViewer.View', [
                 state.scale = 0.08;
             }
             ctx.scale(state.scale, state.scale);
+            // поворот оси координат
             ctx.rotate(state.angle);
             // Отрисовываем изображение с учетом текущей "стержневой" точки
             ctx.drawImage(
