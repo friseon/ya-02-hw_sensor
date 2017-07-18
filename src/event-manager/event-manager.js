@@ -49,7 +49,7 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                 // touch Events
                 console.log("Touch events active");
                 this._touchListener = this._touchEventHandler.bind(this);
-                this._addEventListeners('touchstart touchmove touchend touchcancel', this._elem, this._touchListener);
+                this._addEventListeners('touchstart', this._elem, this._touchListener);
             } 
 
             if (window.MouseEvent) {
@@ -103,7 +103,8 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                     x: event.clientX - elemOffset.x,
                     y: event.clientY - elemOffset.y
                 },
-                distance: 1
+                distance: 1,
+                angle: 0
             });
         },
 
@@ -125,7 +126,8 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                     x: event.clientX - elemOffset.x,
                     y: event.clientY - elemOffset.y
                 },
-                distance: 1
+                distance: 1,
+                angle: 0
             });
         },
 
@@ -136,10 +138,15 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
             // touchend/touchcancel
             if (touches.length === 0) {
                 touches = event.changedTouches;
+                // Если нет касаний - слушаем только на самом элементе
+                this._removeEventListeners('touchstart touchmove touchend', document.documentElement, this._touchListener);
+                this._addEventListeners('touchstart touchmove touchend', this._elem, this._touchListener);
+                
             }
 
             var targetPoint;
             var distance = 1;
+            var angle = 0;
             var elemOffset = this._calculateElementPreset(this._elem);
 
             if (touches.length === 1) {
@@ -147,11 +154,16 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                     x: touches[0].clientX,
                     y: touches[0].clientY
                 };
+                // Появилось касание на элементе - слушаем по всему документу
+                this._addEventListeners('touchstart touchmove touchend', document.documentElement, this._touchListener);
+                this._removeEventListeners('touchstart touchmove touchend', this._elem, this._touchListener);
+                
             } else {
                 var firstTouch = touches[0];
                 var secondTouch = touches[1];
                 targetPoint = this._calculateTargetPoint(firstTouch, secondTouch);
                 distance = this._calculateDistance(firstTouch, secondTouch);
+                angle = this._calculateRotation(firstTouch, secondTouch);
             }
 
             targetPoint.x -= elemOffset.x;
@@ -161,7 +173,8 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                 type: EVENTS[event.type],
                 pointerType: "touch",
                 targetPoint: targetPoint,
-                distance: distance
+                distance: distance,
+                angle: angle
             });
         },
 
@@ -169,25 +182,34 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
             event.preventDefault();
             // pointer ID
             var idEvent = event.pointerId;
-
+            /**
+             * Анализ касаний
+             */
             if (event.type === 'pointerdown') {
                 document.body.style.touchAction = "none";
                 pointers[idEvent] = event;
-                this._addEventListeners('pointermove pointerup', document.documentElement, this._pointerListener);
-            } else if (event.type === 'pointerup' || event.type === 'pointercancel') {
+                // Если появилось касание на элементе - слушаем move & up
+                if (Object.keys(pointers).length == 1) {
+                    this._addEventListeners('pointerup pointermove', this._elem, this._pointerListener);
+                }
+            } else if (event.type === 'pointerup') {
                 document.body.style.touchAction = "auto";
                 delete pointers[idEvent];
-                // если больше не осталось активныйх касаний - снимаем все листенеры
-                if (Object.keys(pointers).length === 0) {
-                    this._removeEventListeners('pointermove pointerup', document.documentElement, this._pointerListener);
+                // Нет касаний - удаляем листенеры move & up с элемента
+                if (Object.keys(pointers).length === 0) {// this._removeEventListeners('pointerdown pointerup pointermove', document.documentElement, this._pointerListener);
+                    this._removeEventListeners('pointerup pointermove', this._elem, this._pointerListener);
                 }
             } else if (event.type === 'pointermove') {
+                // Обновляем касание
                 pointers[idEvent] = event;
             }
-
+            /**
+             * Расчет значений для жестов
+             */
             var elemOffset = this._calculateElementPreset(this._elem);
             var targetPoint;
             var distance = 1;
+            var angle = 0;
             if (Object.keys(pointers).length === 1) {
                 targetPoint = {
                     x: pointers[Object.keys(pointers)[0]].clientX,
@@ -198,7 +220,9 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                 var secondPointer = pointers[Object.keys(pointers)[1]];
                 targetPoint = this._calculateTargetPoint(firstPointer, secondPointer);
                 distance = this._calculateDistance(firstPointer, secondPointer);
+                angle = this._calculateRotation(firstPointer, secondPointer);
             } else {
+                // Нет касаний
                 targetPoint = {
                     x: event.clientX,
                     y: event.clientY
@@ -212,14 +236,15 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                 type: EVENTS[event.type],
                 pointerType: event.pointerType,
                 targetPoint: targetPoint,
-                distance: distance
+                distance: distance,
+                angle: angle
             });
         },
 
         _calculateTargetPoint: function (firstTouch, secondTouch) {
             return {
                 x: (secondTouch.clientX + firstTouch.clientX) / 2,
-                y: (secondTouch.clientY + firstTouch.clientY) / 2
+                y: (secondTouch.clientY + firstTouch.clientX) / 2
             };
         },
         /**
@@ -242,6 +267,17 @@ ym.modules.define('shri2017.imageViewer.EventManager', [
                 x: bounds.left,
                 y: bounds.top
             };
+        },
+        
+        /** Рассчет угла поворота 
+         * @param  {} firstTouch
+         * @param  {} secondTouch
+         * @return {number} angel
+         */
+        _calculateRotation: function(firstTouch, secondTouch) {
+            var angle = Math.atan2(firstTouch.clientY - secondTouch.clientY,
+               firstTouch.clientX - secondTouch.clientX);
+            return angle;
         }
     });
 

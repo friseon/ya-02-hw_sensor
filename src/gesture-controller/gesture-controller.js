@@ -17,7 +17,8 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
             drag: false,
             whellZoom: false,
             oneTouchZoom: false,
-            multiTouchZoom: false
+            multiTouchZoom: false,
+            multiTouchRotate: false
         };
     };
     /**
@@ -92,8 +93,9 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
                 this._resetGestures();
                 this._gestures.oneTouchZoom = true;
             }
-            /** Multitouch zoom */
-            if (event.distance > 1 && event.distance !== this._initEvent.distance) {
+            /** Multitouch zoom && rotate */
+            if (event.distance > 1 &&
+                event.distance !== this._initEvent.distance) {
                 this._resetGestures();
                 this._gestures.multiTouchZoom = true;
             }
@@ -145,7 +147,6 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
          */
         _oneTouchZoom: function(event) {
             var scaleDiff = (event.targetPoint.y - this._initEvent.targetPoint.y)/SCALE_TOUCH_COEF;
-            var state = this._view.getState();
             this._scale(
                 event.targetPoint,
                 this._initState.scale + scaleDiff
@@ -161,12 +162,14 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
             });
         },
         /**
-         * Multitouch zoom
+         * Multitouch zoom && rotate
+         * set { targetPoint, scale, angle }
          */
         _processMultitouch: function (event) {
             this._scale(
                 event.targetPoint,
-                this._initState.scale * (event.distance / this._initEvent.distance)
+                this._initState.scale * (event.distance / this._initEvent.distance),
+                this._initState.angle + (event.angle - this._initEvent.angle)
             );
         },
         /**
@@ -182,7 +185,7 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
         /**
          * Scale calculation
          */
-        _scale: function (targetPoint, newScale) {
+        _scale: function (targetPoint, newScale, newAngle) {
             var imageSize = this._view.getImageSize();
             var state = this._view.getState();
             // Позиция прикосновения на изображении на текущем уровне масштаба
@@ -206,6 +209,18 @@ ym.modules.define('shri2017.imageViewer.GestureController', [
             state.pivotPointY = targetPoint.y;
             // Устанавливаем масштаб и угол наклона
             state.scale = newScale;
+            // Если не приходит угол - берем у исходного стостояния
+            state.angle = newAngle || this._initState.angle;
+            this._view.setState(state);
+        },
+
+        _rotate: function(targetPoint, newAngle) {
+            var state = this._view.getState();
+
+            state.pivotPointX = targetPoint.x;
+            state.pivotPointY = targetPoint.y;
+
+            state.angle = newAngle;
             this._view.setState(state);
         }
     });

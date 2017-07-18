@@ -15,6 +15,7 @@ ym.modules.define('shri2017.imageViewer.View', [
      */
     function DefaultParams() {
         this.scale = 0;
+        this.angle = 0;
         this.positionX = 0;
         this.positionY = 0;
         this.set = function(params) {
@@ -64,25 +65,25 @@ ym.modules.define('shri2017.imageViewer.View', [
             // !
             // Запрет сдвига изображения за границы
             // Zoom и Drag только в пределах самого изображения
-            var scale = state.scale ? (state.scale > defaultParams.get().scale ? state.scale : defaultParams.get().scale) : this._state.scale;
-            var x = (state.positionX || 0 - state.pivotPointX || 0);
-            var y = (state.positionY || 0 - state.pivotPointY || 0);
-            var diffWidth = this.getImageSize().width*scale - this._properties.size.width;
-            var diffHeight = this.getImageSize().height*scale - this._properties.size.height;
-            var positionX = x > 0 ? 
-                            0 :
-                            -x > diffWidth ?
-                                -diffWidth :
-                                x;
-            var positionY = y > 0 ?
-                            0 :
-                            -y > diffHeight ?
-                                -diffHeight :
-                                y;
+            // var scale = state.scale ? (state.scale > defaultParams.get().scale ? state.scale : defaultParams.get().scale) : this._state.scale;
+            // var x = (state.positionX || 0 - state.pivotPointX || 0);
+            // var y = (state.positionY || 0 - state.pivotPointY || 0);
+            // var diffWidth = this.getImageSize().width*scale - this._properties.size.width;
+            // var diffHeight = this.getImageSize().height*scale - this._properties.size.height;
+            // var positionX = x > 0 ? 
+            //                 0 :
+            //                 -x > diffWidth ?
+            //                     -diffWidth :
+            //                     x;
+            // var positionY = y > 0 ?
+            //                 0 :
+            //                 -y > diffHeight ?
+            //                     -diffHeight :
+            //                     y;
             
-            state.scale = scale;
-            state.positionX = positionX;
-            state.positionY = positionY;
+            // state.scale = scale;
+            // state.positionX = positionX;
+            // state.positionY = positionY;
             // !
 
             this._state = extend({}, this._state, state);
@@ -107,7 +108,8 @@ ym.modules.define('shri2017.imageViewer.View', [
                 defaultParams.set({
                     positionX: - (image.width * zoom - containerSize.width) / 2,
                     positionY: - (image.height * zoom - containerSize.height) / 2,
-                    scale: zoom
+                    scale: zoom,
+                    angle: 0
                 });
                 this.setState(defaultParams.get());
             }
@@ -119,12 +121,17 @@ ym.modules.define('shri2017.imageViewer.View', [
 
         _setTransform: function (state) {
             var ctx = this._holderElem.getContext('2d');
+            ctx.save();
             // Сбрасываем текущую трансформацию холста.
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.clearRect(0, 0, this._properties.size.width, this._properties.size.height);
             // Устаналиваем новую
             ctx.translate(state.pivotPointX, state.pivotPointY);
+            if (state.scale <= 0.08) {
+                state.scale = 0.08;
+            }
             ctx.scale(state.scale, state.scale);
+            // поворот оси координат
             ctx.rotate(state.angle);
             // Отрисовываем изображение с учетом текущей "стержневой" точки
             ctx.drawImage(
@@ -132,6 +139,7 @@ ym.modules.define('shri2017.imageViewer.View', [
                 (state.positionX - state.pivotPointX) / state.scale,
                 (state.positionY - state.pivotPointY) / state.scale
             );
+            ctx.restore();
         },
 
         _setupDOM: function (params) {
